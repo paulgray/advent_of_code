@@ -9,8 +9,8 @@ with open("test1") as f:
 
 m_y = len(m[0])
 m_x = len(m)
-
-print 'Dimenstions: ' + str(m_x) + 'x' + str(m_y)
+collided = 0
+tick_no = 0
 
 def next_direction(direction):
     if direction == 'LEFT':
@@ -24,21 +24,22 @@ def next_direction(direction):
 # cart[0] = (x, y) - position on the map
 # cart[1] = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' - direction cart is going
 # cart[2] = 'LEFT' | 'STRAIGHT' | 'RIGHT' - next turn
+# cart[3] = True | False - has collided
 def find_carts():
     c = []
     for i in range(m_x):
         for j in range(m_y):
             if m[i][j] == '^':
-                c.append([(i, j), 'UP', 'LEFT'])
+                c.append([(i, j), 'UP', 'LEFT', False])
                 m[i][j] = '|'
             elif m[i][j] == '>':
-                c.append([(i, j), 'RIGHT', 'LEFT'])
+                c.append([(i, j), 'RIGHT', 'LEFT', False])
                 m[i][j] = '-'
             elif m[i][j] == '<':
-                c.append([(i, j), 'LEFT', 'LEFT'])
+                c.append([(i, j), 'LEFT', 'LEFT', False])
                 m[i][j] = '-'
             elif m[i][j] == 'v':
-                c.append([(i, j), 'DOWN', 'LEFT'])
+                c.append([(i, j), 'DOWN', 'LEFT', False])
                 m[i][j] = '|'
 
     return c
@@ -47,11 +48,25 @@ def sort_carts(c):
     return sorted(c, key = lambda tup: tup[0][::-1])
 
 def find_collision(c):
-    for i in range(len(c)-1):
-        if c[i][0] == c[i+1][0]:
-            return c[i][0]
+    global collided
 
-    return None
+    for i in range(len(c)-1):
+        if c[i][3]:
+            continue
+
+        for j in range(i+1, len(c)):
+            if c[j][3]:
+                continue
+
+            if c[i][0] == c[j][0]:
+                print 'Tick #' + str(tick_no) + ' - collision at ' + str(c[i][0])
+#                for cart in c:
+#                    print cart
+#                print
+
+                c[i][3] = True
+                c[j][3] = True
+                collided += 2
 
 def turn(cart):
     direction = cart[1]
@@ -133,8 +148,7 @@ def tick(c):
 
         cart[0] = (x, y)
 
-        if find_collision(carts) != None:
-            break
+        find_collision(c)
 
     return c
 
@@ -165,16 +179,13 @@ def print_map(c):
     print
     print
 
-i = 0
 carts = sort_carts(find_carts())
-while find_collision(carts) == None:
-    print 'Tick #' + str(i)
+while len(carts) > collided + 1:
+#    print 'Tick #' + str(i)
 
     carts = sort_carts(tick(carts))
 #    print_map(carts)
-    i += 1
+    tick_no += 1
 
-(x, y) = find_collision(carts)
 for c in carts:
     print c
-print (y, x)
