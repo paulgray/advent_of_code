@@ -1,5 +1,8 @@
-#seq = list('637061')
 seq = [3, 7]
+seq_str = '37'
+pattern = '637061'
+#pattern = '59414'
+pattern_len = len(pattern)
 
 first = 0
 second = 1
@@ -18,13 +21,15 @@ def print_recipes():
     print s
 
 def create_new():
-    global created_count
+    global created_count, seq_str
     combined = seq[first] + seq[second]
     if combined > 9:
         created_count += 1
         seq.append(1)
+        seq_str += '1'
     created_count += 1
     seq.append(combined % 10)
+    seq_str += str(combined % 10)
 
 def pick_new():
     global first, second
@@ -32,9 +37,22 @@ def pick_new():
     first = (first + seq[first] + 1) % len(seq)
     second = (second + seq[second] + 1) % len(seq)
 
-while created_count < 637061+10:
+def find_pattern():
+    if seq_str[-pattern_len:] == pattern:
+        return len(seq_str) - pattern_len
+    elif seq_str[-pattern_len:-1] == pattern:
+        return len(seq_str) - pattern_len
+    return -1
+
+iterations = 0
+while find_pattern() == -1:
 #    print_recipes()
     create_new()
     pick_new()
 
-print ''.join(map(lambda x: str(x), seq[637061:637071]))
+    if (iterations % 10000) == 0:
+        print iterations
+
+    iterations += 1
+
+print find_pattern()
