@@ -75,6 +75,7 @@ ops = [addr, addi,
            setr, seti,
            gtir, gtri, gtrr,
            eqir, eqri, eqrr]
+op_codes = [None for x in range(len(ops))]
 
 instructions = []
 with open("test1") as f:
@@ -88,23 +89,31 @@ with open("test1") as f:
             operation = [int(op), int(a), int(b), int(c)]
             instructions.append((before_reg, operation, after_reg))
 
-result = 0
-for (before_reg, instruction, after_reg) in instructions:
-    (op_no, a, b, c) = instruction
-    hits = 0
-    for op in ops:
-#        print 'Before ' + op.__name__ + ' reg: ' + str(before_reg) + 'operands: ' + str((a, b, c))
-        register = copy.deepcopy(before_reg)
-        op(a, b, c)
-#        print 'After ' + op.__name__ + ' reg: ' + str(register) + ' expected reg: ' + str(after_reg)
-        if register == after_reg:
-#            print 'Its a match! ' + op.__name__
-            hits += 1
-            if hits >= 3:
-                break
+found = 0
+while found != 16:
+    for (before_reg, instruction, after_reg) in instructions:
+        (op_no, a, b, c) = instruction
+        hits = 0
+        op_ptr = None
+        for op in ops:
+            register = copy.deepcopy(before_reg)
+            op(a, b, c)
+            if register == after_reg and op not in op_codes:
+                hits += 1
+                op_ptr = op
 
-    if hits >= 3:
-#        print 'Instruction ' + str(instruction) + ' behaves like ' + str(hits) + ' opscodes'
-        result += 1
+        if hits == 1:
+            print 'Found op! Code %d is %s' % (op_no, op_ptr.__name__)
+            op_codes[op_no] = op_ptr
+            found += 1
 
-print result
+register = [0, 0, 0, 0]
+with open("test3") as f:
+    pattern = r'(\d+) (\d+) (\d+) (\d+)'
+    for g in f.read().split("\n"):
+        match = re.search(pattern, g)
+        (op_no, a, b, c) = match.groups()
+        op = op_codes[int(op_no)]
+        op(int(a), int(b), int(c))
+
+print register[0]
