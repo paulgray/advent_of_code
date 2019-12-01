@@ -17,15 +17,9 @@ fn main() {
     let filename = "/tmp/input";
     let file = File::open(filename).unwrap();
     let reader = BufReader::new(file);
-    let mut sum = 0;
-
-    for line in reader.lines() { 
-        let line = line.unwrap();
-        let mass = line.parse::<i32>().unwrap();
-
-        let fuel = get_fuel(mass);
-        sum += fuel;
-    }
+    let sum = reader.lines().map(|line| line.unwrap().parse::<i32>().unwrap())
+                            .map(get_fuel)
+                            .fold(0, |acc, fuel| acc + fuel);
 
     println!("Fuel: {}", sum);
 }
