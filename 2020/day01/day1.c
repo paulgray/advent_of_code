@@ -1,6 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+int get_fuel(int mass) {
+    int sum = (int)(mass / 3) - 2;
+    int fuel = sum;
+
+    while((fuel = ((int)(fuel / 3) - 2)) > 0) {
+        sum += fuel;
+    }
+
+    return sum;
+}
+
 int main() {
     FILE *file;
     char *line = NULL;
@@ -18,7 +29,7 @@ int main() {
                 return -1;
             }
 
-            sum += ((int)(mass / 3) - 2);
+            sum += get_fuel(mass);
         }
 
         printf("Sum: %d\n", sum);
