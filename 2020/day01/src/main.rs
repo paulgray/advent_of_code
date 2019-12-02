@@ -14,12 +14,11 @@ fn get_fuel(mass: i32) -> i32 {
 }
 
 fn main() {
-    let filename = "/tmp/input";
-    let file = File::open(filename).unwrap();
+    let file = File::open("/tmp/input").unwrap();
     let reader = BufReader::new(file);
-    let sum = reader.lines().map(|line| line.unwrap().parse::<i32>().unwrap())
+    let sum: i32 = reader.lines().map(|line| line.unwrap().parse::<i32>().unwrap())
                             .map(get_fuel)
-                            .fold(0, |acc, fuel| acc + fuel);
+                            .sum();
 
     println!("Fuel: {}", sum);
 }
