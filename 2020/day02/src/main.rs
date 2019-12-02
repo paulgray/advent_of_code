@@ -2,38 +2,54 @@ use std::fs::File;
 use std::io::prelude::*;
 
 fn execute(p: &mut Vec<i32>) {
-    let mut i = 0;
+    let mut ip = 0;
     loop {
-        if p[i] == 99 {
+        if p[ip] == 99 {
             break;
         }
 
-        let l = p[i+1] as usize;
-        let r = p[i+2] as usize;
-        let res = p[i+3] as usize;
+        let l = p[ip+1] as usize;
+        let r = p[ip+2] as usize;
+        let res = p[ip+3] as usize;
 
-        match p[i] {
+        match p[ip] {
             1  => p[res] = p[l] + p[r],
             2  => p[res] = p[l] * p[r],
             y  => println!("Case not handled {}", y),
         }
 
-        i += 4;
+        ip += 4;
     }
 }
 
 fn main() {
     let mut file = File::open("/tmp/input2").unwrap();
     let mut input = String::new();
+    let mut noun = 0;
+    let mut verb = 0;
 
     file.read_to_string(&mut input).unwrap();
+    let orig = input.split(",")
+                    .map(|opcode| opcode.trim_end().parse::<i32>().unwrap())
+                    .collect::<Vec<i32>>();
 
-    let mut p = input.split(",").map(|opcode| opcode.trim_end().parse::<i32>().unwrap())
-                     .collect::<Vec<i32>>();
-    p[1] = 12;
-    p[2] = 2;
+    loop {
+        let mut p = orig.clone();
+        
+        p[1] = noun;
+        p[2] = verb;
 
-    execute(&mut p);
+        execute(&mut p);
 
-    println!("Result {}", p[0]);
+        if p[0] == 19690720 {
+            println!("Result {}", 100 * noun + verb);
+            break;
+        }
+
+        noun += 1;
+        if noun == 100 {
+            noun = 0;
+            verb += 1;
+        }
+    }
 }
