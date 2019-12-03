@@ -2,3 +2,4 @@ test1
 a.out
 target/
 Cargo.lock
+.DS_Store

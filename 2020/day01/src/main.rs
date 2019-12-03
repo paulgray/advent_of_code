@@ -22,3 +22,10 @@ fn main() {
 
     println!("Fuel: {}", sum);
 }
+
+#[test]
+fn test() {
+    assert_eq!(2, get_fuel(14));
+    assert_eq!(966, get_fuel(1969));
+    assert_eq!(50346, get_fuel(100756));
+}
