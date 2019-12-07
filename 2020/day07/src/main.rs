@@ -12,48 +12,80 @@ fn parameter(mode : i32, param : i32, p: &mut Vec<i32>) -> i32 {
     } 
 }
 
-fn execute(p: &mut Vec<i32>, phase : i32, input : i32) -> i32 {
-    let mut ip = 0;
+fn execute(p: &mut Vec<i32>, ip : &mut usize, phase : i32, input : i32, skip_phase : bool) -> (i32, bool) {
     let mut output = 0;
     let mut inputs = phase;
+    let is_done;
+    
+    if skip_phase {
+        inputs = input;
+    }
 
     println!("Running with phase {}, input {}", phase, input);
 
     loop {
-        if p[ip] == 99 {
+        if p[*ip] == 99 {
+            is_done = true;
             break;
         }
 
-        let p1 = p[ip+1];
-        let p2 = p[ip+2];
-        let p3 = p[ip+3] as usize;
+        let p1 = p[*ip+1];
+        let p2 = p[*ip+2];
+        let p3 = p[*ip+3] as usize;
 
-        let opcode = (p[ip] % 10) +  10 * ((p[ip] / 10) % 10);
-        let m1 = (p[ip] / 100) % 10;
-        let m2 = (p[ip] / 1000) % 10;
+        let opcode = (p[*ip] % 10) +  10 * ((p[*ip] / 10) % 10);
+        let m1 = (p[*ip] / 100) % 10;
+        let m2 = (p[*ip] / 1000) % 10;
 
         match opcode {
-            2  => { p[p3] = parameter(m1, p1, p) * parameter(m2, p2, p); ip += 4 },
-            1  => { p[p3] = parameter(m1, p1, p) + parameter(m2, p2, p); ip += 4 },
-            3  => { p[p1 as usize] = inputs; inputs = input; ip += 2 },
-            4  => { output = parameter(m1, p1, p); ip += 2; },
-            5  => { if parameter(m1, p1, p) != 0 { ip = parameter(m2, p2, p) as usize; } else { ip += 3; } },
-            6  => { if parameter(m1, p1, p) == 0 { ip = parameter(m2, p2, p) as usize; } else { ip += 3; } },
-            7  => { if parameter(m1, p1, p) < parameter(m2, p2, p) { p[p3] = 1; } else { p[p3] = 0; }; ip += 4; },
-            8  => { if parameter(m1, p1, p) == parameter(m2, p2, p) { p[p3] = 1; } else { p[p3] = 0; }; ip += 4; },
+            2  => { p[p3] = parameter(m1, p1, p) * parameter(m2, p2, p); *ip += 4 },
+            1  => { p[p3] = parameter(m1, p1, p) + parameter(m2, p2, p); *ip += 4 },
+            3  => { p[p1 as usize] = inputs; inputs = input; *ip += 2 },
+            4  => { output = parameter(m1, p1, p); *ip += 2; is_done = false; break; },
+            5  => { if parameter(m1, p1, p) != 0 { *ip = parameter(m2, p2, p) as usize; } else { *ip += 3; } },
+            6  => { if parameter(m1, p1, p) == 0 { *ip = parameter(m2, p2, p) as usize; } else { *ip += 3; } },
+            7  => { if parameter(m1, p1, p) < parameter(m2, p2, p) { p[p3] = 1; } else { p[p3] = 0; }; *ip += 4; },
+            8  => { if parameter(m1, p1, p) == parameter(m2, p2, p) { p[p3] = 1; } else { p[p3] = 0; }; *ip += 4; },
             y  => println!("Case not handled {}", y),
         }
     }
 
-    return output;
+    return (output, is_done);
 }
 
 fn chain_execute(p: &mut Vec<i32>, phases : Vec<i32>) -> i32 {
-    return phases.iter().fold(0, |output, phase| execute(&mut p.clone(), *phase, output));
+    let mut p0 = p.clone();
+    let mut p1 = p.clone();
+    let mut p2 = p.clone();
+    let mut p3 = p.clone();
+    let mut p4 = p.clone();
+
+    let mut ip0 = 0;
+    let mut ip1 = 0;
+    let mut ip2 = 0;
+    let mut ip3 = 0;
+    let mut ip4 = 0;
+
+    let mut output : i32 = 0;
+    let mut skip_phase : bool = false;
+
+    loop {
+        let (tmp_output0, is_done) = execute(&mut p0, &mut ip0, phases[0], output, skip_phase);
+        let (tmp_output1, _) = execute(&mut p1, &mut ip1, phases[1], tmp_output0, skip_phase);
+        let (tmp_output2, _) = execute(&mut p2, &mut ip2, phases[2], tmp_output1, skip_phase);
+        let (tmp_output3, _) = execute(&mut p3, &mut ip3, phases[3], tmp_output2, skip_phase);
+        let (tmp_output4, _) = execute(&mut p4, &mut ip4, phases[4], tmp_output3, skip_phase);
+        if is_done {
+            return output;
+        }
+
+        output = tmp_output4;
+        skip_phase = true;
+    }
 }
 
 fn find_max_output(p: &mut Vec<i32>) -> i32 {
-    let mut phases : Vec<i32> = vec![0, 1, 2, 3, 4];
+    let mut phases : Vec<i32> = vec![5, 6, 7, 8, 9];
     let mut max = 0;
     loop {
         let output = chain_execute(p, phases.clone());
@@ -86,12 +118,12 @@ fn main() {
 
 #[test]
 fn test() {
-    let mut input = vec![3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0];
-    assert_eq!(43210, find_max_output(&mut input));
+    let mut input = vec![3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5];
+    assert_eq!(139629729, find_max_output(&mut input));
 
-    input = vec![3,23,3,24,1002,24,10,24,1002,23,-1,23,101,5,23,23,1,24,23,23,4,23,99,0,0];
+    /*input = vec![3,23,3,24,1002,24,10,24,1002,23,-1,23,101,5,23,23,1,24,23,23,4,23,99,0,0];
     assert_eq!(54321, find_max_output(&mut input));
 
     input = vec![3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0];
-    assert_eq!(65210, find_max_output(&mut input));
+    assert_eq!(65210, find_max_output(&mut input));*/
 }
