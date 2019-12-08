@@ -1,6 +1,19 @@
 use std::fs::File;
 use std::io::prelude::*;
 
+fn get_pixel_color(pos : usize, input : &Vec<char>) -> char {
+    let mut offset = 0;
+    loop {
+        match input[offset * 150 + pos] {
+            '0' => return ' ',
+            '1' => return '#',
+            _   => {}
+        }
+        
+        offset += 1;
+    }
+}
+
 fn main() {
     let mut file = File::open("/tmp/input8").unwrap();
     let mut s = String::new();
@@ -35,4 +48,17 @@ fn main() {
     let layer = layers[winning_layer];
     let result = layer.chars().filter(|c| c == &'1').count() * layer.chars().filter(|c| c == &'2').count();
     println!("Result: {}", result);
+
+    let mut final_layer = Vec::new();
+    let vec_input = input.chars().collect();
+    for i in 0..layer_pixels {
+        final_layer.push(get_pixel_color(i, &vec_input));
+    }
+
+    for j in 0..height {
+        for i in 0..width {
+            print!("{}", final_layer[j*width+i]);
+        }
+        println!();
+    }
 }
