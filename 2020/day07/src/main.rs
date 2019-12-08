@@ -103,7 +103,6 @@ fn find_max_output(p: &mut Vec<i32>) -> i32 {
 }
 
 fn main() {
-
     let mut file = File::open("/tmp/input7").unwrap();
     let mut input = String::new();
 
