@@ -110,7 +110,7 @@ fn main() {
                      .map(|opcode| opcode.trim_end().parse::<i64>().unwrap())
                      .collect::<Vec<i64>>();
 
-    execute(&mut p, 1);
+    execute(&mut p, 2);
 }
 
 #[test]
