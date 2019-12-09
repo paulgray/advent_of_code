@@ -6,7 +6,7 @@ fn parameter(mode : i32, param : i32, p: &mut Vec<i32>) -> i32 {
         0 => return p[param as usize],
         1 => return param,
         y => panic!("Unknown mode {}", y),
-    } 
+    }
 }
 
 fn execute(p: &mut Vec<i32>, input : i32) -> i32 {
