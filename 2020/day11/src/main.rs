@@ -63,6 +63,42 @@ fn change_direction(direction: char, turn: i32) -> char {
     return 'X';
 }
 
+fn print_output(output: &HashMap<(i32, i32), i32>) {
+    let mut min_x: i32 = 0;
+    let mut min_y: i32 = 0;
+    let mut max_x: i32 = 0;
+    let mut max_y: i32 = 0;
+    // at first let's normalize the dimensions
+    for (x, y) in output.keys() {
+        if *x < min_x {
+            min_x = *x;
+        }
+        if *x > max_x {
+            max_x = *x;
+        }
+        if *y < min_y {
+            min_y = *y;
+        }
+        if *y > max_y {
+            max_y = *y;
+        }
+    }
+
+    //println!("{}", output.keys());
+
+    // print the entire sign
+    for j in min_y..=max_y {
+        for i in min_x..=max_x {
+            if output.contains_key(&(i, j)) && *output.get(&(i, j)).unwrap() == 1 {
+                print!("#");
+            } else {
+                print!(" ");
+            }
+        }
+        println!();
+    }
+}
+
 fn execute(p: &mut Vec<i64>, inputs: &mut HashMap<(i32, i32), i32>) -> usize {
     let mut ip: usize = 0;
     let mut relative_base: i64 = 0;
@@ -71,6 +107,8 @@ fn execute(p: &mut Vec<i64>, inputs: &mut HashMap<(i32, i32), i32>) -> usize {
     let mut direction = 'u';
     let mut read_direction = false;
     let mut painted = HashSet::new();
+    painted.insert((0, 0));
+    inputs.insert((0, 0), 1);
 
     p.resize(10000, 0);
 
@@ -121,7 +159,7 @@ fn execute(p: &mut Vec<i64>, inputs: &mut HashMap<(i32, i32), i32>) -> usize {
                     }
                 }
                 read_direction = !read_direction;
-                println!("Output {}", output);
+                //println!("Output {}", output);
                 ip += 2;
             }
             5 => {
@@ -179,6 +217,7 @@ fn main() {
 
     let mut inputs = HashMap::new();
     let painted = execute(&mut p, &mut inputs);
+    print_output(&inputs);
 
     println!("Painted {} panels", painted);
 }
