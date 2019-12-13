@@ -64,7 +64,6 @@ fn execute(p: &mut Vec<i64>, input: i64) -> Vec<i64> {
             4 => {
                 let output = get_value(p, relative_base, ip, m1, 1);
                 outputs.push(output);
-                println!("Output {}", output);
                 ip += 2;
             }
             5 => {
@@ -120,12 +119,31 @@ fn main() {
         .map(|opcode| opcode.trim_end().parse::<i64>().unwrap())
         .collect::<Vec<i64>>();
 
-    let output = execute(&mut p, 2);
-    let block_tiles = output
-        .chunks(3)
-        .filter(|chunk| *chunk.get(2).unwrap() == 2)
-        .count();
-    println!("Block tiles: {}", block_tiles);
+    let mut joystick = -1;
+    loop {
+        p[0] = 2;
+        let output = execute(&mut p, joystick);
+
+        let score = output
+            .chunks(3)
+            .filter(|chunk| *chunk.get(0).unwrap() == -1 && *chunk.get(1).unwrap() == 0)
+            .map(|chunk| chunk.get(2).unwrap())
+            .collect::<Vec<&i64>>();
+
+        let block_tiles = output
+            .chunks(3)
+            .filter(|chunk| *chunk.get(0).unwrap() != -1 && *chunk.get(2).unwrap() == 2)
+            .count();
+
+        println!("Block tiles: {}", block_tiles);
+        if block_tiles == 0 {
+            // we killed all the blocks
+            println!("Scores: {:?}", score);
+            return;
+        } else if block_tiles == 10 {
+            //joystick = -1;
+        }
+    }
 }
 
 #[test]
