@@ -1,3 +1,4 @@
+#[derive(Eq, PartialEq)]
 struct Planet {
     x: i32,
     y: i32,
@@ -68,6 +69,10 @@ impl Planet {
             self.x, self.y, self.z, self.vx, self.vy, self.vz,
         );
     }
+
+    fn cloned(&self) -> Self {
+        return Planet::new(self.x, self.y, self.z);
+    }
 }
 
 fn update_gravity(p1: &mut Planet, p2: &mut Planet, p3: &mut Planet, p4: &mut Planet) {
@@ -89,23 +94,29 @@ fn update_velocity(p1: &mut Planet, p2: &mut Planet, p3: &mut Planet, p4: &mut P
     p4.update_position();
 }
 
-fn simulate(
-    max_steps: i32,
-    mut p1: &mut Planet,
-    mut p2: &mut Planet,
-    mut p3: &mut Planet,
-    mut p4: &mut Planet,
-) {
-    for step in 0..max_steps {
-        println!("After {} steps", step);
+fn simulate(mut p1: &mut Planet, mut p2: &mut Planet, mut p3: &mut Planet, mut p4: &mut Planet) {
+    let mut step = 0;
+    let ip1 = p1.cloned();
+    let ip2 = p2.cloned();
+    let ip3 = p3.cloned();
+    let ip4 = p4.cloned();
+
+    loop {
+        /*println!("After {} steps", step);
         p1.print();
         p2.print();
         p3.print();
         p4.print();
-        println!();
+        println!();*/
 
         update_gravity(&mut p1, &mut p2, &mut p3, &mut p4);
         update_velocity(&mut p1, &mut p2, &mut p3, &mut p4);
+        step += 1;
+
+        if p1 == &ip1 && p2 == &ip2 && p3 == &ip3 && p4 == &ip4 {
+            println!("Found the same position after {} steps", step);
+            return;
+        }
     }
 }
 
@@ -119,7 +130,7 @@ fn main() {
     let mut p3 = Planet::new(-1, -15, 2);
     let mut p4 = Planet::new(12, -4, -4);
 
-    simulate(1000, &mut p1, &mut p2, &mut p3, &mut p4);
+    simulate(&mut p1, &mut p2, &mut p3, &mut p4);
     let energy = calculate_energy(&p1, &p2, &p3, &p4);
     println!("Total energy: {}", energy);
 }
@@ -131,6 +142,6 @@ fn test() {
     let mut p3 = Planet::new(4, -8, 8);
     let mut p4 = Planet::new(3, 5, -1);
 
-    simulate(10, &mut p1, &mut p2, &mut p3, &mut p4);
+    simulate(&mut p1, &mut p2, &mut p3, &mut p4);
     assert_eq!(179, calculate_energy(&p1, &p2, &p3, &p4));
 }
