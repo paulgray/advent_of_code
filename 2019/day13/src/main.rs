@@ -119,7 +119,7 @@ fn main() {
         .map(|opcode| opcode.trim_end().parse::<i64>().unwrap())
         .collect::<Vec<i64>>();
 
-    let mut joystick = -1;
+    let mut joystick = 0;
     loop {
         p[0] = 2;
         let output = execute(&mut p, joystick);
@@ -134,6 +134,25 @@ fn main() {
             .chunks(3)
             .filter(|chunk| *chunk.get(0).unwrap() != -1 && *chunk.get(2).unwrap() == 2)
             .count();
+
+        let ball_x = output
+            .chunks(3)
+            .filter(|chunk| *chunk.get(0).unwrap() > 0 && *chunk.get(2).unwrap() == 4)
+            .next()
+            .unwrap()[0];
+        let paddle_x = output
+            .chunks(3)
+            .filter(|chunk| *chunk.get(0).unwrap() > 0 && *chunk.get(2).unwrap() == 3)
+            .next()
+            .unwrap()[0];
+
+        if ball_x < paddle_x {
+            joystick = 1;
+        } else if ball_x > paddle_x {
+            joystick = -1;
+        } else {
+            joystick = 0;
+        }
 
         println!("Block tiles: {}", block_tiles);
         if block_tiles == 0 {
