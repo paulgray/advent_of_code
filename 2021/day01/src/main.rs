@@ -1,4 +1,4 @@
-fn star1(input: &std::string::String) {
+fn star1(input: &str) {
     println!(
         "{}",
         input
@@ -15,7 +15,7 @@ fn star1(input: &std::string::String) {
     );
 }
 
-fn star2(input: &std::string::String) {
+fn star2(input: &str) {
     let max = u32::MAX;
     println!(
         "{}",
