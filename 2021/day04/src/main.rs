@@ -7,6 +7,7 @@ struct Board {
     rows: Vec<Seq>,
     columns: Vec<Seq>,
     unmarked: Vec<u32>,
+    won: bool,
 }
 
 fn parse_boards(lines: &Vec<&str>) -> Vec<Board> {
@@ -19,6 +20,7 @@ fn parse_boards(lines: &Vec<&str>) -> Vec<Board> {
             rows: Vec::new(),
             columns: Vec::new(),
             unmarked: Vec::new(),
+            won: false,
         };
 
         // construct a row
@@ -44,11 +46,11 @@ fn parse_boards(lines: &Vec<&str>) -> Vec<Board> {
         while j < 5 {
             let column = Seq {
                 numbers: vec![
-                    board.rows[j].numbers[0],
-                    board.rows[j].numbers[1],
-                    board.rows[j].numbers[2],
-                    board.rows[j].numbers[3],
-                    board.rows[j].numbers[4],
+                    board.rows[0].numbers[j],
+                    board.rows[1].numbers[j],
+                    board.rows[2].numbers[j],
+                    board.rows[3].numbers[j],
+                    board.rows[4].numbers[j],
                 ],
                 hits: 0,
             };
@@ -79,12 +81,18 @@ fn draw_number(n: u32, boards: &mut Vec<Board>) {
         for row in &mut board.rows {
             if row.numbers.contains(&n) {
                 row.hits += 1;
+                if row.hits >= 5 {
+                    board.won = true;
+                }
             }
         }
 
         for column in &mut board.columns {
             if column.numbers.contains(&n) {
                 column.hits += 1;
+                if column.hits >= 5 {
+                    board.won = true;
+                }
             }
         }
 
@@ -135,10 +143,29 @@ fn star1(input: &str) {
             break;
         }
     }
+}
 
-    //for board in boards {
-    //    print_board(&board);
-    //}
+fn star2(input: &str) {
+    let lines: Vec<&str> = input.trim().split("\n").collect();
+
+    let numbers = lines[0]
+        .trim()
+        .split(",")
+        .map(|x| x.parse::<u32>().unwrap_or_default())
+        .collect::<Vec<u32>>();
+
+    let mut boards = parse_boards(&lines);
+
+    for number in numbers {
+        draw_number(number, &mut boards);
+
+        if validate_boards(number, &boards) {
+            boards.retain(|b| !b.won);
+            if boards.len() == 0 {
+                break;
+            }
+        }
+    }
 }
 
 fn main() {
@@ -146,4 +173,5 @@ fn main() {
         std::fs::read_to_string("test1").expect("Something went wrong when reading the input file");
 
     star1(&contents);
+    star2(&contents);
 }
