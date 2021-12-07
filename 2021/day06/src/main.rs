@@ -50,7 +50,7 @@ fn star1(input: &str) {
     }
 
     // start simulation
-    simulate(80, &mut population);
+    simulate(256, &mut population);
 }
 
 fn main() {
