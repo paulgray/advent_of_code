@@ -53,8 +53,10 @@ fn find_maxes(m: &Vec<Line>) -> (usize, usize) {
 
 fn fill_map(lines: &Vec<Line>, map: &mut Vec<Vec<u32>>) {
     for line in lines {
-        // for now consider only horizontal or vertical lines
-        if line.p1.0 != line.p2.0 && line.p1.1 != line.p2.1 {
+        let dx = i32::abs(i32::try_from(line.p1.0).unwrap() - i32::try_from(line.p2.0).unwrap());
+        let dy = i32::abs(i32::try_from(line.p1.1).unwrap() - i32::try_from(line.p2.1).unwrap());
+        // consider only horizontal, vertical or diagonal lines
+        if line.p1.0 != line.p2.0 && line.p1.1 != line.p2.1 && dx != dy {
             continue;
         }
 
@@ -83,6 +85,39 @@ fn fill_map(lines: &Vec<Line>, map: &mut Vec<Vec<u32>>) {
             for i in s..=e {
                 let row = map.get_mut(line.p1.1).unwrap();
                 row[i] += 1;
+            }
+        }
+
+        // this is a diagonal line
+        if dx == dy {
+            println!(
+                "Diagonal line ({}, {}) -> ({}, {})",
+                line.p1.0, line.p1.1, line.p2.0, line.p2.1
+            );
+
+            // end x == sx + dx
+            // starting point is always the one with lower 'x' coord
+            let (p1, p2) = if line.p1.0 < line.p2.0 {
+                (line.p1, line.p2)
+            } else {
+                (line.p2, line.p1)
+            };
+
+            // line is going down!
+            if p1.1 < p2.1 {
+                for i in 0..=dx {
+                    let usize_i = usize::try_from(i).unwrap();
+                    let row = map.get_mut(p1.1 + usize_i).unwrap();
+                    row[p1.0 + usize_i] += 1;
+                }
+            }
+            // line is going up
+            else {
+                for i in 0..=dx {
+                    let usize_i = usize::try_from(i).unwrap();
+                    let row = map.get_mut(p1.1 - usize_i).unwrap();
+                    row[p1.0 + usize_i] += 1;
+                }
             }
         }
     }
@@ -144,7 +179,7 @@ fn star1(input: &str) {
     let (max_x, max_y) = find_maxes(&lines);
     let map = build_map(&lines, max_x, max_y);
 
-    print_map(&map);
+    //print_map(&map);
 
     println!("Overlapping points {}", count_overlapping(&map));
 }
