@@ -46,9 +46,78 @@ fn star1(input: &str) {
     println!("Score: {}", score);
 }
 
+fn star2(input: &str) {
+    let mut scores: Vec<u128> = Vec::new();
+    input.split("\n").for_each(|line| {
+        let mut stack: Vec<char> = Vec::new();
+        let mut keep = true;
+        for c in line.trim().chars() {
+            match c {
+                '(' => stack.push(c),
+                '[' => stack.push(c),
+                '{' => stack.push(c),
+                '<' => stack.push(c),
+                ')' => {
+                    let last = stack.pop();
+                    if last.is_none() || last.unwrap() != '(' {
+                        keep = false;
+                        break;
+                    }
+                }
+                ']' => {
+                    let last = stack.pop();
+                    if last.is_none() || last.unwrap() != '[' {
+                        keep = false;
+                        break;
+                    }
+                }
+                '}' => {
+                    let last = stack.pop();
+                    if last.is_none() || last.unwrap() != '{' {
+                        keep = false;
+                        break;
+                    }
+                }
+                '>' => {
+                    let last = stack.pop();
+                    if last.is_none() || last.unwrap() != '<' {
+                        keep = false;
+                        break;
+                    }
+                }
+                _ => (),
+            }
+        }
+
+        if keep && !stack.is_empty() {
+            let mut line_score: u128 = 0;
+            stack.reverse();
+            for leftover in stack {
+                line_score *= 5;
+
+                line_score += match leftover {
+                    '(' => 1,
+                    '[' => 2,
+                    '{' => 3,
+                    '<' => 4,
+                    _ => 0,
+                };
+            }
+
+            scores.push(line_score);
+        }
+    });
+
+    scores.sort();
+    let mid_idx = scores.len() / 2;
+
+    println!("Score: {}", scores[mid_idx]);
+}
+
 fn main() {
     let contents =
         std::fs::read_to_string("test1").expect("Something went wrong when reading the input file");
 
     star1(&contents);
+    star2(&contents);
 }
