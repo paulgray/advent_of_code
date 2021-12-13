@@ -176,13 +176,20 @@ fn star1(input: &str) {
 
     // run simulation
     let mut flashes = 0;
-    let steps = 100;
-    for _ in 0..steps {
+    let mut steps = 0;
+    loop {
         let count = simulate(&mut map);
         flashes += count;
+        steps += 1;
+
+        // keep going until all of them flash
+        if count == 100 {
+            break;
+        }
     }
 
     println!("Flashes: {}", flashes);
+    println!("Steps to sync: {}", steps);
 
     print_map(&map);
 }
