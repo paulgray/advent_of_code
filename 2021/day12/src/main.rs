@@ -6,28 +6,47 @@ struct Graph {
 }
 
 fn find_paths(
-    n1: u32,
-    n2: u32,
+    current_id: u32,
+    start_id: u32,
+    end_id: u32,
     visited: &mut Vec<u32>,
     multivisit: &Vec<u32>,
+    double_visited: bool,
     graph: &Graph,
 ) -> u32 {
     let mut sum = 0;
 
     // get all possible edges from n1
     for (e1, e2) in &graph.edges {
-        if *e1 == n1 {
-            // we either have not visited the node or it's okay to visit it
-            // multiple times
-            if !visited.contains(e2) || multivisit.contains(e2) {
+        if *e1 == current_id {
+            // we either have not visited the node OR
+            // it's okay to visit it multiple times (uppercase id) OR
+            // it's the first time we double visit that cave (lowercase id)
+            if !visited.contains(e2)
+                || multivisit.contains(e2)
+                || (!double_visited && *e2 != start_id)
+            {
                 let mut new_visited = visited.clone();
                 new_visited.push(*e2);
 
                 // we reached the end
-                if *e2 == n2 {
+                if *e2 == end_id {
                     sum += 1;
                 } else {
-                    sum += find_paths(*e2, n2, &mut new_visited, &multivisit, &graph);
+                    let double_visited = if !visited.contains(e2) || multivisit.contains(e2) {
+                        double_visited
+                    } else {
+                        true
+                    };
+                    sum += find_paths(
+                        *e2,
+                        start_id,
+                        end_id,
+                        &mut new_visited,
+                        &multivisit,
+                        double_visited,
+                        &graph,
+                    );
                 }
             }
         }
@@ -110,7 +129,15 @@ fn star1(input: &str) {
     let mut visited: Vec<u32> = Vec::new();
     visited.push(*start_id);
 
-    let paths = find_paths(*start_id, *end_id, &mut visited, &multivisit, &graph);
+    let paths = find_paths(
+        *start_id,
+        *start_id,
+        *end_id,
+        &mut visited,
+        &multivisit,
+        false,
+        &graph,
+    );
     println!("Paths found: {}", paths);
 }
 
