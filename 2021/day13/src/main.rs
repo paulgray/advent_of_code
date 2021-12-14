@@ -22,9 +22,9 @@ fn print_map(map: &Vec<Vec<bool>>, max_x: usize, max_y: usize) {
         let row = &map[y];
         for x in 0..max_x {
             if row[x] {
-                print!("#");
+                print!("█");
             } else {
-                print!(".");
+                print!("_");
             }
         }
         println!();
@@ -105,7 +105,6 @@ fn star1(input: &str) {
         let row = map.get_mut(y).unwrap();
         row[x] = true;
     }
-    print_map(&map, max_x, max_y);
 
     // start folding the map
     for (is_y, position) in folds {
@@ -117,20 +116,21 @@ fn star1(input: &str) {
             // the size of our map shrinks from
             // (max_x, max_y)
             //   to
-            // (max_x, max_y/2)
-            for y in 0..position {
+            // (max_x, max_y-position)
+            let count = max_y - position;
+            for y in 1..count {
                 let mut res: Vec<bool> = Vec::new();
 
-                let curr_row = &map[y];
-                let mirrored_row = &map[max_y - y - 1];
+                let curr_row = &map[position - y];
+                let mirrored_row = &map[position + y];
 
                 for x in 0..max_x {
                     res.push(curr_row[x] || mirrored_row[x]);
                 }
 
-                map[y] = res;
+                map[position - y] = res;
             }
-            max_y /= 2;
+            max_y = position;
         } else {
             // this time 'y' coords stays the same
             // coords that are marked true: (x || position - x, y)
@@ -138,18 +138,17 @@ fn star1(input: &str) {
             // the size of map shrinks from
             // (max_x, max_y)
             //   to
-            // (max_x/2, max_y)
+            // (max_x-position, max_y)
+            let count = max_x - position;
             for y in 0..max_y {
                 let row = &mut map[y];
 
-                for x in 0..position {
-                    row[x] = row[x] || row[max_x - x - 1];
+                for x in 1..count {
+                    row[position - x] = row[position - x] || row[position + x];
                 }
             }
-            max_x /= 2;
+            max_x = position;
         }
-
-        break;
     }
 
     println!("");
