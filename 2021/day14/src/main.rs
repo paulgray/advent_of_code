@@ -98,11 +98,8 @@ fn star1(input: &str) {
     }
 
     // start expanding the polymer
-    for step in 0..10 {
+    for _ in 0..40 {
         expand(&mut polymer, &rules);
-
-        let l: u64 = polymer.values().sum();
-        println!("Polymer length after step {}: {}", step + 1, l);
     }
 
     // get quantities of elements in the polymer
