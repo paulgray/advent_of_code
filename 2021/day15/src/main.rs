@@ -29,10 +29,23 @@ fn build_map(max_x: usize, max_y: usize) -> Vec<Vec<u32>> {
     return map;
 }
 
-fn fill_map(input: &Vec<&str>, map: &mut Vec<Vec<u32>>) {
+fn fill_map(input: &Vec<&str>, max_x: usize, max_y: usize, map: &mut Vec<Vec<u32>>) {
+    // now replicate the map 5x to the right and to the bottom
     for (y, line) in input.iter().enumerate() {
         for (x, c) in line.chars().enumerate() {
-            map.get_mut(y).unwrap()[x] = c.to_digit(10).unwrap();
+            let val = c.to_digit(10).unwrap();
+
+            for mul_x in 0..5 {
+                for mul_y in 0..5 {
+                    let mut final_val = val + mul_x + mul_y;
+                    if final_val > 9 {
+                        // we need to wrap it
+                        final_val -= 9;
+                    }
+                    map.get_mut(max_y * mul_y as usize + y).unwrap()[max_x * mul_x as usize + x] =
+                        final_val;
+                }
+            }
         }
     }
 }
@@ -84,10 +97,10 @@ fn find_path(
         let mut next = (0, 0);
         let mut lowest_cost = u32::MAX;
 
-        for (node, cost) in costs.clone() {
-            if unvisited.contains(&node) && cost < lowest_cost {
-                next = node;
-                lowest_cost = cost;
+        for (node, cost) in costs.iter() {
+            if unvisited.contains(&node) && *cost < lowest_cost {
+                next = *node;
+                lowest_cost = *cost;
             }
         }
 
@@ -104,11 +117,13 @@ fn star1(input: &str) {
         .map(|line| line.trim())
         .collect::<Vec<&str>>();
 
-    let max_x = lines[0].len();
-    let max_y = lines.len();
+    let mut max_x = lines[0].len();
+    let mut max_y = lines.len();
 
-    let mut map: Vec<Vec<u32>> = build_map(max_x, max_y);
-    fill_map(&lines, &mut map);
+    let mut map: Vec<Vec<u32>> = build_map(5 * max_x, 5 * max_y);
+    fill_map(&lines, max_x, max_y, &mut map);
+    max_x *= 5;
+    max_y *= 5;
 
     print_map(&map);
 
@@ -136,7 +151,7 @@ fn star1(input: &str) {
 
 fn main() {
     let contents =
-        std::fs::read_to_string("test1").expect("Something went wrong when reading the input file");
+        std::fs::read_to_string("test0").expect("Something went wrong when reading the input file");
 
     star1(&contents);
 }
