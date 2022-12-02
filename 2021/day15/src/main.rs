@@ -151,7 +151,7 @@ fn star1(input: &str) {
 
 fn main() {
     let contents =
-        std::fs::read_to_string("test0").expect("Something went wrong when reading the input file");
+        std::fs::read_to_string("test1").expect("Something went wrong when reading the input file");
 
     star1(&contents);
 }

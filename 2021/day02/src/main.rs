@@ -6,9 +6,9 @@ fn star1(input: &str) {
         .map(|i| (i[0], i[1].parse::<u32>().unwrap_or_default()))
         .fold((0, 0), |(horizontal, depth), (dir, modifier)| match dir {
             "forward" => (horizontal + modifier, depth),
-            "down" => return (horizontal, depth + modifier),
-            "up" => return (horizontal, depth - modifier),
-            &_ => return (horizontal, depth),
+            "down" => (horizontal, depth + modifier),
+            "up" => (horizontal, depth - modifier),
+            &_ => (horizontal, depth),
         });
 
     println!("{}", coords.0 * coords.1);
@@ -24,9 +24,9 @@ fn star2(input: &str) {
             (0, 0, 0),
             |(horizontal, depth, aim), (dir, modifier)| match dir {
                 "forward" => (horizontal + modifier, depth + aim * modifier, aim),
-                "down" => return (horizontal, depth, aim + modifier),
-                "up" => return (horizontal, depth, aim - modifier),
-                &_ => return (horizontal, depth, aim),
+                "down" => (horizontal, depth, aim + modifier),
+                "up" => (horizontal, depth, aim - modifier),
+                &_ => (horizontal, depth, aim),
             },
         );
 
