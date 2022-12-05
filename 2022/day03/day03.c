@@ -41,35 +41,74 @@ int duplicates_search(char *left, char *right, int len)
     return -1;
 }
 
+// this would be 100x more elegant with sets/hashmaps
+int badge_search(char *elf1, int len1, char *elf2, int len2, char *elf3, int len3)
+{
+    // each elf backpack is sorted
+    // the character we're looking for must appear in _all_ lines
+    for (int i = 0; i < len1; i++)
+    {
+        for (int j = 0; j < len2; j++)
+        {
+            if (elf1[i] == elf2[j])
+            {
+                // now we need to see if the element is also present
+                // in the third elf rucksack
+                for (int k = 0; k < len3; k++)
+                {
+                    if (elf1[i] == elf3[k])
+                    {
+                        return value(elf1[i]);
+                    }
+                    else if (elf1[i] < elf3[k])
+                    {
+                        break;
+                    }
+                }
+            }
+            else if (elf1[i] < elf2[j])
+            {
+                break;
+            }
+        }
+    }
+
+    return -1;
+}
+
 int main()
 {
     FILE *fp;
-    char *line = NULL;
-    size_t len = 0;
-    ssize_t read;
+    char *line1 = NULL;
+    char *line2 = NULL;
+    char *line3 = NULL;
+    size_t len1 = 0, len2 = 0, len3 = 0;
 
     int sum = 0;
     fp = fopen("input", "r");
     if (!fp)
         return -1;
 
-    while ((read = getline(&line, &len, fp)) != -1)
+    while ((getline(&line1, &len1, fp)) != -1 &&
+           (getline(&line2, &len2, fp)) != -1 &&
+           (getline(&line3, &len3, fp)) != -1)
     {
-        int slen = (strlen(line) - 1) / 2;
-
-        // sort both halves of the string
-        qsort(line, slen, sizeof(char), cmpfunc);
-        qsort(line + slen, slen, sizeof(char), cmpfunc);
+        // sort each of the strings
+        qsort(line1, strlen(line1) - 1, sizeof(char), cmpfunc);
+        qsort(line2, strlen(line2) - 1, sizeof(char), cmpfunc);
+        qsort(line3, strlen(line3) - 1, sizeof(char), cmpfunc);
 
         // look for duplicates
-        sum += duplicates_search(line, line + slen, slen);
+        sum += badge_search(line1, len1, line2, len2, line3, len3);
     }
 
     fclose(fp);
-    if (line)
-    {
-        free(line);
-    }
+    if (line1)
+        free(line1);
+    if (line2)
+        free(line2);
+    if (line3)
+        free(line3);
 
     printf("Priorities: %d\n", sum);
 
