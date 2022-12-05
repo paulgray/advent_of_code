@@ -28,8 +28,24 @@ int does_contain(range r1, range r2)
         return 1;
 
     // or the other way around
-    if (r2.left <= r1.left && r2.right >= r1.right)
+    if (r1.right >= r2.left && r1.right <= r2.right)
         return 1;
+
+    return 0;
+}
+
+int does_overlap(range r1, range r2)
+{
+    if (does_contain(r1, r2))
+        return 1;
+
+    if (r1.left >= r2.left && r1.left <= r2.right)
+        return 1;
+
+    if (r1.right >= r2.left && r1.right <= r2.right)
+        return 1;
+
+    printf("Ranges %d-%d and %d-%d do not overlap\n", r1.left, r1.right, r2.left, r2.right);
 
     return 0;
 }
@@ -53,7 +69,7 @@ int main()
         left = strsep(&line, ",");
         right = strsep(&line, ",");
 
-        if (does_contain(parse_range(left), parse_range(right)))
+        if (does_overlap(parse_range(left), parse_range(right)))
             overlaps++;
     }
 
