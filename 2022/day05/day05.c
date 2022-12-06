@@ -83,12 +83,20 @@ void apply_moves(stack **stacks, int count, int from, int to)
     stack *from_s = stacks[from];
     stack *to_s = stacks[to];
 
+    stack *temp = NULL;
+
     while (count)
     {
         char c;
         stacks[from] = pop(stacks[from], &c);
-        stacks[to] = push(stacks[to], c);
+        temp = push(temp, c);
         count--;
+    }
+    while (temp)
+    {
+        char c;
+        temp = pop(temp, &c);
+        stacks[to] = push(stacks[to], c);
     }
 }
 
