@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define PACKET_WINDOW_SIZE 14
+
 int are_all_different(char *buffer, int len)
 {
     for (int i = 0; i < len; i++)
@@ -20,13 +22,13 @@ int find_marker(char *signal)
 {
     int pos;
 
-    for (pos = 0; pos < strlen(signal) - 3; pos++)
+    for (pos = 0; pos < strlen(signal) - PACKET_WINDOW_SIZE; pos++)
     {
-        if (are_all_different(signal + pos, 4))
+        if (are_all_different(signal + pos, PACKET_WINDOW_SIZE))
             break;
     }
 
-    return pos + 4;
+    return pos + PACKET_WINDOW_SIZE;
 }
 
 int main()
