@@ -119,6 +119,21 @@ int find_small_dirs(dir_tree *tree, int cap)
     return size;
 }
 
+int find_dir_to_rm(dir_tree *tree, int candidate, int cap)
+{
+    if (tree->is_dir && tree->size >= cap && tree->size < candidate)
+        candidate = tree->size;
+
+    for (int i = 0; i < tree->children_count; i++)
+    {
+        int best = find_dir_to_rm(tree->children[i], candidate, cap);
+        if (best < candidate)
+            candidate = best;
+    }
+
+    return candidate;
+}
+
 int main()
 {
     FILE *fp;
@@ -150,9 +165,12 @@ int main()
 
     compute_sizes(top);
 
-    int cap = 100000;
-    int sum_sizes = find_small_dirs(top, cap);
-    printf("Sum: %d\n", sum_sizes);
+    // int cap = 100000;
+    // int sum_sizes = find_small_dirs(top, cap);
+
+    int min_size = 30000000 - (70000000 - tree->size);
+    int dir_to_rm = find_dir_to_rm(top, 70000000, min_size);
+    printf("Smallest: %d\n", dir_to_rm);
 
     fclose(fp);
     if (line)
