@@ -55,6 +55,79 @@ int is_visible(char **grid, int rows, int columns, int y, int x)
     return visilbe_counter;
 }
 
+int scenic_score(char **grid, int rows, int columns, int row, int column)
+{
+    int score = 1;
+    char height = grid[row][column];
+    int counter = 0;
+
+    // trees visible looking up
+    for (int i = row - 1; i >= 0; i--)
+    {
+        counter++;
+        if (grid[i][column] >= height)
+        {
+            break;
+        }
+    }
+    score *= counter;
+    counter = 0;
+
+    // trees visible looking down
+    for (int i = row + 1; i < rows; i++)
+    {
+        counter++;
+        if (grid[i][column] >= height)
+        {
+            break;
+        }
+    }
+    score *= counter;
+    counter = 0;
+
+    // trees visible looking left
+    for (int i = column - 1; i >= 0; i--)
+    {
+        counter++;
+        if (grid[row][i] >= height)
+        {
+            break;
+        }
+    }
+    score *= counter;
+    counter = 0;
+
+    // trees visible looking right
+    for (int i = column + 1; i < columns; i++)
+    {
+        counter++;
+        if (grid[row][i] >= height)
+        {
+            break;
+        }
+    }
+    score *= counter;
+
+    return score;
+}
+
+int find_max_scenic_score(char **grid, int rows, int columns)
+{
+    int max = 0;
+
+    for (int row = 0; row < rows; row++)
+    {
+        for (int column = 0; column < columns; column++)
+        {
+            int score = scenic_score(grid, rows, columns, row, column);
+            if (score > max)
+                max = score;
+        }
+    }
+
+    return max;
+}
+
 int main()
 {
     FILE *fp;
@@ -84,7 +157,9 @@ int main()
         }
     }
 
-    printf("Visible: %d\n", visible);
+    int score = find_max_scenic_score(lines, rows, columns);
+
+    printf("Best score: %d\n", score);
 
     fclose(fp);
 
