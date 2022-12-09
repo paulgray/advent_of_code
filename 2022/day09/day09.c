@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define BODY_SIZE 10
+
 typedef struct pair
 {
     int x;
@@ -10,8 +12,7 @@ typedef struct pair
 
 typedef struct snake
 {
-    pair head;
-    pair tail;
+    pair body[BODY_SIZE];
 
     pair tail_visited[100000];
     int visited_count;
@@ -51,35 +52,34 @@ int distance(pair a, pair b)
     return 2;
 }
 
-void follow_tail(snake *s)
+void follow_head(snake *s)
 {
-    // do nothing if we are in the same place, or touching
-    if (distance(s->head, s->tail) <= 1)
-        return;
-
-    // otherwise we need to move the tail in the direction of head
-    // move horizontally
-    // if (s->head.y == s->tail.y)
+    // for each element of the body of the snake, follow the previous one
+    for (int i = 1; i < BODY_SIZE; i++)
     {
-        if (s->head.x > s->tail.x)
-        {
-            s->tail.x++;
-        }
-        else if (s->head.x < s->tail.x)
-        {
-            s->tail.x--;
-        }
-    }
+        pair to_follow = s->body[i - 1];
 
-    // if (s->head.x == s->tail.x)
-    {
-        if (s->head.y > s->tail.y)
+        // do nothing if we are in the same place, or touching
+        if (distance(to_follow, s->body[i]) <= 1)
+            return;
+
+        // otherwise we need to move the body in the direction of head
+        if (to_follow.x > s->body[i].x)
         {
-            s->tail.y++;
+            s->body[i].x++;
         }
-        else if (s->head.y < s->tail.y)
+        else if (to_follow.x < s->body[i].x)
         {
-            s->tail.y--;
+            s->body[i].x--;
+        }
+
+        if (to_follow.y > s->body[i].y)
+        {
+            s->body[i].y++;
+        }
+        else if (to_follow.y < s->body[i].y)
+        {
+            s->body[i].y--;
         }
     }
 }
@@ -89,28 +89,28 @@ void update_visited(snake *s)
     // see if we already visited this point
     for (int i = 0; i < s->visited_count; i++)
     {
-        if (s->tail.x == s->tail_visited[i].x &&
-            s->tail.y == s->tail_visited[i].y)
+        if (s->body[BODY_SIZE - 1].x == s->tail_visited[i].x &&
+            s->body[BODY_SIZE - 1].y == s->tail_visited[i].y)
         {
             return;
         }
     }
 
     // not really, let's append this
-    s->tail_visited[s->visited_count] = s->tail;
+    s->tail_visited[s->visited_count] = s->body[BODY_SIZE - 1];
     s->visited_count++;
 }
 
 void move(snake *s, char direction, int steps)
 {
-    // printf("Moving head from (%d, %d) %d fields to %c\n", s->head.x, s->head.y, steps, direction);
+    printf("Moving head from (%d, %d) %d fields to %c\n", s->body[0].x, s->body[0].y, steps, direction);
     for (int i = 0; i < steps; i++)
     {
         // move head first
-        move_point(&s->head, direction);
+        move_point(&s->body[0], direction);
 
         // try to follow with the tail
-        follow_tail(s);
+        follow_head(s);
 
         // update visited points
         update_visited(s);
@@ -130,8 +130,8 @@ int main()
 
     snake s;
     pair start = {0, 0};
-    s.head = start;
-    s.tail = start;
+    for (int i = 0; i < BODY_SIZE; i++)
+        s.body[i] = start;
     s.visited_count = 0;
     s.tail_visited[s.visited_count++] = start;
     while ((getline(&line, &len, fp)) != -1)
