@@ -46,6 +46,35 @@ void execute(exec_env *env)
     printf("Result: %d\n", result);
 }
 
+void draw(exec_env *env)
+{
+    for (env->ip = 1; env->ip < 240; env->ip++)
+    {
+        int pos = (env->ip - 1) % 40;
+        if (pos == 0)
+        {
+            printf("\n");
+        }
+
+        if (abs(env->r_x - pos) <= 1)
+        {
+            printf("#");
+        }
+        else
+        {
+            printf(" ");
+        }
+
+        if (env->cmds[env->ip].command == noop)
+        {
+        }
+        else if (env->cmds[env->ip].command == addx)
+        {
+            env->r_x += env->cmds[env->ip].arg;
+        }
+    }
+}
+
 int main()
 {
     FILE *fp;
@@ -83,6 +112,10 @@ int main()
     }
     env.ip = 1;
     execute(&env);
+
+    env.ip = 1;
+    env.r_x = 1;
+    draw(&env);
 
     fclose(fp);
 
