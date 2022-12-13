@@ -2,44 +2,55 @@
 #include <stdlib.h>
 #include <string.h>
 
-int addition(int a, int b)
+long long addition(long long a, long long b)
 {
     return a + b;
 }
 
-int multiplication(int a, int b)
+long long multiplication(long long a, long long b)
 {
     return a * b;
 }
 
-int square(int a, int ignore)
+long long square(long long a, long long ignore)
 {
     return a * a;
 }
 
 typedef struct monkey
 {
-    int items[100];
+    long long items[100];
     int items_count;
 
-    int (*operation)(int, int);
-    int operation_arg;
+    long long (*operation)(long long, long long);
+    long long operation_arg;
 
-    int divisible_by_test;
+    long long divisible_by_test;
     int if_true;
     int if_false;
 
-    int inspected;
+    long long inspected;
 } monkey;
 
 int cmp(const void *a, const void *b)
 {
-    return (*(int *)b - *(int *)a);
+    if ((*(long long *)b) > *(long long *)a)
+    {
+        return 1;
+    }
+    else if ((*(long long *)b) == *(long long *)a)
+    {
+        return 0;
+    }
+    else
+    {
+        return -1;
+    }
 }
 
 void simulate(monkey *monkeys, int monkey_count)
 {
-    for (int round = 0; round < 20; round++)
+    for (int round = 0; round < 10000; round++)
     {
         // for every monkey
         for (int monkey_no = 0; monkey_no < monkey_count; monkey_no++)
@@ -48,8 +59,8 @@ void simulate(monkey *monkeys, int monkey_count)
             monkeys[monkey_no].inspected += monkeys[monkey_no].items_count;
             for (int item_no = 0; item_no < monkeys[monkey_no].items_count; item_no++)
             {
-                monkeys[monkey_no].items[item_no] = monkeys[monkey_no].operation(monkeys[monkey_no].items[item_no], monkeys[monkey_no].operation_arg);
-                monkeys[monkey_no].items[item_no] /= 3;
+                monkeys[monkey_no].items[item_no] = monkeys[monkey_no].operation(monkeys[monkey_no].items[item_no], monkeys[monkey_no].operation_arg) % 96577;
+                // monkeys[monkey_no].items[item_no] /= 3;
 
                 int target_monkey_id = 0;
                 if ((monkeys[monkey_no].items[item_no] % monkeys[monkey_no].divisible_by_test) == 0)
@@ -61,7 +72,7 @@ void simulate(monkey *monkeys, int monkey_count)
                     target_monkey_id = monkeys[monkey_no].if_false;
                 }
                 int target_monkey_item_count = monkeys[target_monkey_id].items_count;
-                monkeys[target_monkey_id].items[target_monkey_item_count] = monkeys[monkey_no].items[item_no];
+                monkeys[target_monkey_id].items[target_monkey_item_count] = monkeys[monkey_no].items[item_no] % 96577;
                 monkeys[target_monkey_id].items_count++;
                 monkeys[monkey_no].items[item_no] = 0;
             }
@@ -70,15 +81,18 @@ void simulate(monkey *monkeys, int monkey_count)
     }
 
     // find 2 most active monkeys
-    int inspected[10000];
+    long long inspected[100];
     for (int i = 0; i < monkey_count; i++)
     {
-        printf("Monkey %d inspected items %d times.\n", i, monkeys[i].inspected);
         inspected[i] = monkeys[i].inspected;
     }
-    qsort(inspected, monkey_count, sizeof(int), cmp);
+    qsort(inspected, monkey_count, sizeof(long long), cmp);
+    for (int i = 0; i < monkey_count; i++)
+    {
+        printf("Monkey %d inspected items %lld times.\n", i, inspected[i]);
+    }
 
-    printf("Value: %d\n", inspected[0] * inspected[1]);
+    printf("Value: %lld\n", inspected[0] * inspected[1]);
 }
 
 int main()
@@ -115,7 +129,7 @@ int main()
         int item_count = 0;
         while ((item = strsep(&lines[i], ",\n")) != NULL)
         {
-            monkeys[monkey_count].items[monkeys[monkey_count].items_count++] = atoi(item);
+            monkeys[monkey_count].items[monkeys[monkey_count].items_count++] = atoll(item);
         }
         monkeys[monkey_count].items_count--;
         i++;
@@ -124,7 +138,7 @@ int main()
         if (lines[i][23] == '+')
         {
             monkeys[monkey_count].operation = addition;
-            monkeys[monkey_count].operation_arg = atoi(lines[i] + 24);
+            monkeys[monkey_count].operation_arg = atoll(lines[i] + 24);
         }
         else if (lines[i][23] == '*')
         {
@@ -135,13 +149,13 @@ int main()
             else
             {
                 monkeys[monkey_count].operation = multiplication;
-                monkeys[monkey_count].operation_arg = atoi(lines[i] + 24);
+                monkeys[monkey_count].operation_arg = atoll(lines[i] + 24);
             }
         }
         i++;
 
         // next is a test
-        monkeys[monkey_count].divisible_by_test = atoi(lines[i] + 21);
+        monkeys[monkey_count].divisible_by_test = atoll(lines[i] + 21);
         i++;
 
         // if true
