@@ -67,6 +67,15 @@ void find_way(char **lines, int rows, int columns, int steps, coord c, coord e, 
     }
 }
 
+void reset_costs(int costs[1000][1000])
+{
+    for (int i = 0; i < 1000; i++)
+    {
+        for (int j = 0; j < 1000; j++)
+            costs[i][j] = 99999;
+    }
+}
+
 int main()
 {
     FILE *fp;
@@ -111,8 +120,30 @@ int main()
     }
 
     // start moving
-    find_way(lines, rows, columns, 0, s, e, costs);
-    printf("Cost to get to (%d, %d) = %d\n", e.x, e.y, costs[e.y][e.x]);
+    int shortest = 99999;
+    for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < columns; j++)
+        {
+            // this is a possible starting point
+            if (lines[i][j] == 'a')
+            {
+                s.x = j;
+                s.y = i;
+
+                // reset costs
+                reset_costs(costs);
+
+                find_way(lines, rows, columns, 0, s, e, costs);
+
+                if (costs[e.y][e.x] < shortest)
+                    shortest = costs[e.y][e.x];
+            }
+        }
+    }
+    // find_way(lines, rows, columns, 0, s, e, costs);
+    // printf("Cost to get to (%d, %d) = %d\n", e.x, e.y, costs[e.y][e.x]);
+    printf("Shortest path: %d\n", shortest);
 
     fclose(fp);
 
