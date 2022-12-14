@@ -5,6 +5,7 @@
 typedef struct list
 {
     int is_list;
+    int is_divider;
     int value;
     int elements_count;
     struct list *elements;
@@ -13,8 +14,8 @@ typedef struct list
 typedef enum compare
 {
     no,
-    yes,
     cont,
+    yes,
 } compare;
 
 char *s;
@@ -26,6 +27,7 @@ list parse()
     l.value = 0;
     l.elements = malloc(sizeof(list) * 100);
     l.is_list = 1;
+    l.is_divider = 0;
 
     while (1)
     {
@@ -66,6 +68,7 @@ list parse()
             number.value = tmp;
             number.elements_count = 0;
             number.elements = NULL;
+            number.is_divider = 0;
             l.elements[l.elements_count] = number;
             l.elements_count++;
         }
@@ -148,6 +151,13 @@ compare are_in_order(list left, list right)
     }
 }
 
+void swap(list *left, list *right)
+{
+    list temp = *left;
+    *left = *right;
+    *right = temp;
+}
+
 int main()
 {
     FILE *fp;
@@ -156,43 +166,60 @@ int main()
     if (!fp)
         return -1;
 
-    char *left = NULL, *right = NULL;
+    char *line = NULL;
     size_t len = 0;
     int idx = 1;
-    int sum = 0;
+    int decoder_key = 1;
+
+    list lists[1000];
+    int lists_len = 0;
 
     // read inputs
-    while ((getline(&left, &len, fp)) != -1)
+    while ((getline(&line, &len, fp)) != -1)
     {
-        // immediately read a second line
-        getline(&right, &len, fp);
+        // skip empty lines
+        if (strcmp(line, "\n") == 0)
+            continue;
 
-        left++;
-        right++;
+        line++;
 
-        s = left;
-        list lleft = parse();
+        s = line;
+        lists[lists_len] = parse();
+        lists_len++;
 
-        s = right;
-        list lright = parse();
-
-        compare c = are_in_order(lleft, lright);
-        printf("[%d] Elements are in right order? %d\n", idx, c);
-        if (c == yes)
-        {
-            sum += idx;
-        }
-
-        left = NULL;
-        getline(&left, &len, fp);
-        left = NULL;
-        right = NULL;
-        idx++;
-
-        // FIXME remove
-        // break;
+        line = NULL;
     }
-    printf("Sum: %d\n", sum);
+
+    // add 2 extra divider packets
+    s = "[2]]";
+    lists[lists_len] = parse();
+    lists[lists_len].is_divider = 1;
+    lists_len++;
+
+    s = "[6]]";
+    lists[lists_len] = parse();
+    lists[lists_len].is_divider = 1;
+    lists_len++;
+
+    for (int i = 0; i < lists_len - 1; i++)
+    {
+        for (int j = 0; j < lists_len - i - 1; j++)
+        {
+            if (!are_in_order(lists[j], lists[j + 1]))
+            {
+                swap(&lists[j], &lists[j + 1]);
+            }
+        }
+    }
+
+    // find the divider packets' indexes
+    for (int i = 0; i < lists_len; i++)
+    {
+        if (lists[i].is_divider)
+            decoder_key *= (i + 1);
+    }
+
+    printf("Key: %d\n", decoder_key);
 
     fclose(fp);
 
