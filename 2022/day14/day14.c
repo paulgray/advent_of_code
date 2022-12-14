@@ -2,14 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_SIZE 1000
+#define MAX_SIZE 5000
 
 void print_map(char **map, int min_x, int max_x, int min_y, int max_y)
 {
     for (int i = min_y; i <= max_y; i++)
     {
         printf("%02d\t", i - min_y);
-        for (int j = min_x; j <= max_x; j++)
+        for (int j = min_x - 100; j <= max_x + 100; j++)
         {
             printf("%c", map[i][j]);
         }
@@ -49,11 +49,12 @@ int main()
         map[i] = malloc(sizeof(char) * MAX_SIZE);
 
     int min_x = 9999, min_y = 0, max_x = 0, max_y = 0;
+    int shift = 500;
 
     // create an empty map
-    for (int i = 0; i < 600; i++)
+    for (int i = 0; i < MAX_SIZE; i++)
     {
-        for (int j = 0; j < 600; j++)
+        for (int j = 0; j < MAX_SIZE; j++)
         {
             map[i][j] = '.';
         }
@@ -69,7 +70,7 @@ int main()
         char *pair = strsep(&line, " ");
         while (pair != NULL)
         {
-            int x = atoi(strsep(&pair, ","));
+            int x = atoi(strsep(&pair, ",")) + shift;
             int y = atoi(pair);
             draw_line(map, prev_x, prev_y, x, y);
 
@@ -93,6 +94,9 @@ int main()
         line = NULL;
     }
 
+    max_y += 2;
+    draw_line(map, 0, max_y, MAX_SIZE - 1, max_y);
+
     // print map
     print_map(map, min_x, max_x, min_y, max_y);
 
@@ -102,7 +106,7 @@ int main()
     while (stop_cond)
     {
         // sand starts falling from 500,0
-        int s_x = 500, s_y = 0;
+        int s_x = 500 + shift, s_y = 0;
 
         // simulate falling until it's possible
         while (1)
@@ -129,6 +133,8 @@ int main()
             {
                 map[s_y][s_x] = 'o';
                 sand_count++;
+                if (s_y == 0 && s_x == 500 + shift)
+                    stop_cond = 0;
                 break;
             }
 
