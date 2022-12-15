@@ -27,101 +27,105 @@ int range_cmp(const void *left, const void *right)
     return l.start - r.start;
 }
 
-int banned_beacon_positions(coord sensors[SIZE], coord beacons[SIZE], int count, int row)
+long long search_for_beacon(coord sensors[SIZE], coord beacons[SIZE], int count, int max)
 {
-    // we won't count individual points - it's too much
-    // instead, let's track banned ranges, merge them
-    // count the length - and finally remove known beacons
-    range banned[1000];
-    int range_count = 0;
-
-    // for every sensor
-    for (int i = 0; i < count; i++)
+    for (int row = 0; row < max; row++)
     {
-        // see if the closest beacon coverage area overlaps with the selected row
-        int delta = abs(row - sensors[i].y);
-        int distance = abs(sensors[i].x - beacons[i].x) + abs(sensors[i].y - beacons[i].y);
+        // we won't count individual points - it's too much
+        // instead, let's track banned ranges, merge them
+        // count the length - and finally remove known beacons
+        range banned[1000];
+        int range_count = 0;
 
-        // this sensor won't affect our measurements
-        if (delta > distance)
-            continue;
-
-        // the interesting row is in the range, let's see how many coords overlap
-        // let's add the full range
-        range banned_range;
-        banned_range.start = sensors[i].x - distance + delta;
-        banned_range.end = sensors[i].x + distance - delta;
-        banned[range_count] = banned_range;
-        range_count++;
-    }
-
-    // now let's merge the ranges
-    // first - sort them
-    qsort(banned, range_count, sizeof(range), range_cmp);
-
-    // then - merge whatever overlaps
-    for (int i = 0; i < range_count; i++)
-    {
-        if (banned[i].start == -666 && banned[i].end == -666)
-            continue;
-
-        for (int j = i + 1; j < range_count; j++)
+        // for every sensor
+        for (int i = 0; i < count; i++)
         {
-            if (banned[j].start == -666 && banned[j].end == -666)
+            // see if the closest beacon coverage area overlaps with the selected row
+            int delta = abs(row - sensors[i].y);
+            int distance = abs(sensors[i].x - beacons[i].x) + abs(sensors[i].y - beacons[i].y);
+
+            // this sensor won't affect our measurements
+            if (delta > distance)
                 continue;
 
-            if (banned[i].end >= banned[j].start)
-            {
-                banned[i].end = banned[i].end > banned[j].end ? banned[i].end : banned[j].end;
-                banned[j].start = -666;
-                banned[j].end = -666;
-            }
-        }
-    }
-
-    // let's count the total length of all ranges
-    int banned_count = 0;
-    for (int i = 0; i < range_count; i++)
-    {
-        if (banned[i].start == -666 && banned[i].end == -666)
-            continue;
-
-        banned_count += banned[i].end - banned[i].start + 1;
-    }
-
-    // and now remove beacon points
-    int removed[100];
-    int removed_count = 0;
-    for (int i = 0; i < count; i++)
-    {
-        int skip = 0;
-        for (int j = 0; j < removed_count; j++)
-        {
-            if (beacons[i].x == removed[j])
-            {
-                skip = 1;
-                break;
-            }
+            // the interesting row is in the range, let's see how many coords overlap
+            // let's add the full range, but within [0, max]
+            range banned_range;
+            banned_range.start = sensors[i].x - distance + delta;
+            banned_range.start = banned_range.start < 0 ? 0 : banned_range.start;
+            banned_range.end = sensors[i].x + distance - delta;
+            banned_range.end = banned_range.end > max ? max : banned_range.end;
+            banned[range_count] = banned_range;
+            range_count++;
         }
 
-        if (beacons[i].y == row && skip == 0)
+        // now let's merge the ranges
+        // first - sort them
+        qsort(banned, range_count, sizeof(range), range_cmp);
+
+        // then - merge whatever overlaps
+        for (int i = 0; i < range_count; i++)
         {
-            for (int j = 0; j < range_count; j++)
+            if (banned[i].start == -666 && banned[i].end == -666)
+                continue;
+
+            for (int j = i + 1; j < range_count; j++)
             {
-                if (banned[i].start == -666 && banned[i].end == -666)
+                if (banned[j].start == -666 && banned[j].end == -666)
                     continue;
 
-                if (banned[j].start <= beacons[i].x && banned[j].end >= beacons[i].x)
+                if (banned[i].end >= banned[j].start)
                 {
-                    removed[removed_count] = beacons[i].x;
-                    removed_count++;
-                    banned_count--;
+                    banned[i].end = banned[i].end > banned[j].end ? banned[i].end : banned[j].end;
+                    banned[j].start = -666;
+                    banned[j].end = -666;
                 }
             }
         }
+
+        // let's count the total length of all ranges
+        int banned_count = 0;
+        for (int i = 0; i < range_count; i++)
+        {
+            if (banned[i].start == -666 && banned[i].end == -666)
+                continue;
+
+            banned_count += banned[i].end - banned[i].start + 1;
+        }
+
+        // see how many possible spots are there
+        int possible_spots = max - banned_count + 1;
+        if (possible_spots == 1)
+        {
+            // we found the right row, let's now find the right 'x'
+            int x = 0;
+            for (x = 0; x <= max; x++)
+            {
+                // for every banned range - see if 'x' falls within it
+                int found = 1;
+                for (int i = 0; i < range_count; i++)
+                {
+                    if (x >= banned[i].start && x <= banned[i].end)
+                    {
+                        x = banned[i].end;
+                        found = 0;
+                        break;
+                    }
+                }
+
+                if (found)
+                    break;
+            }
+
+            printf("Found a spot: %d, %d\n", x, row);
+
+            // this is going to overflow, so just do the math outside of C
+            long long frequency = 4000000 * x + row;
+            return frequency;
+        }
     }
 
-    return banned_count;
+    return -1;
 }
 
 int main()
@@ -155,9 +159,11 @@ int main()
         count++;
     }
 
-    int row = 2000000;
-    int pos = banned_beacon_positions(sensors, beacons, count, row);
-    printf("Banned beacon positions in row %d: %d\n", row, pos);
+    // int row = 10;
+    // int pos = banned_beacon_positions(sensors, beacons, count, row);
+    int max = 4000000;
+    long long frequency = search_for_beacon(sensors, beacons, count, max);
+    printf("Tuning frequency: %lld\n", frequency);
 
     fclose(fp);
 
